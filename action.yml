@@ -6,14 +6,29 @@ branding:
 inputs:
   key:
     description: "env key"
-    required: true
+    required: false
   value:
     description: "env value"
-    required: true
+    required: false
   file:
-    description: "env file path"
+    description: "input file path"
     required: false
     default: ".env"
+  output:
+    description: "output file path"
+    required: false
+    default: ".env"
+  replace-all:
+    description: "list of key value pairs to replace"
+    required: false
+  upsert:
+    description: "upsert key value pair when replace-all is set"
+    required: false
+    default: "false"
+  remove-non-matches:
+    description: "remove non-matching key value pairs when replace-all is set"
+    required: false
+    default: "false"
 runs:
   using: "node16"
   main: "dist/index.js"

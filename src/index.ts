@@ -1,24 +1,38 @@
 import * as core from "@actions/core";
-import * as fs from "fs/promises";
+import { runReplaceAll, runReplaceOne } from "./utils";
 
 async function run() {
 	try {
 		const key = core.getInput("key");
 		const value = core.getInput("value");
 		const file = core.getInput("file");
+		const output = core.getInput("output") ?? file;
+		const replaceAll = core.getInput("replace-all");
+		const upsert = core.getBooleanInput("upsert", { required: false }) ?? false;
+		const removeNonMatches =
+			core.getBooleanInput("remove-non-matches", {
+				required: false,
+			}) ?? false;
 
-		core.info(`Setting ${key} to ${value} in ${file}`);
+		if (replaceAll) {
+			const result = await runReplaceAll(file, output, replaceAll, {
+				logger: core,
+				removeNonMatches,
+				upsert,
+				write: true,
+			});
 
-		const envContent = await fs.readFile(file, "utf8");
+			core.setOutput("result", result);
 
-		const result = envContent.replace(
-			new RegExp(`${key}=.*`),
-			`${key}=${value}`
-		);
+			return;
+		}
 
-		await fs.writeFile(file, result);
+		if (!key || !value || !file) throw new Error("Missing required input");
 
-		core.info(`Successfully set ${key} to ${value} in ${file}`);
+		const result = await runReplaceOne(key, value, file, output, {
+			logger: core,
+			write: true,
+		});
 
 		core.setOutput("result", result);
 	} catch (error) {
